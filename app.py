@@ -52,12 +52,21 @@ geometrize_routes = feed.geometrize_routes()
 duplicated = geometrize_routes["route_short_name"].duplicated()
 geometrize_routes = geometrize_routes[~duplicated]
 selected_routes = st.multiselect(
-    "Choose routes", geometrize_routes["route_short_name"].tolist()
+    "Choose routes",
+    [
+        f"{d} {n}"
+        for d, n in zip(
+            geometrize_routes["route_short_name"].tolist(),
+            geometrize_routes["route_long_name"].tolist(),
+        )
+    ],
 )
 if selected_routes:
     # feed.map_routes() does not seem to work with streamlit
     routes = geometrize_routes[
-        geometrize_routes["route_short_name"].isin(selected_routes)
+        geometrize_routes["route_short_name"].isin(
+            [l.split()[0] for l in selected_routes]
+        )
     ]
     m = folium.Map((51.0447, -114.0719))
     colors = gk.COLORS_SET2
