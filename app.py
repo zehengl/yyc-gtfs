@@ -30,7 +30,17 @@ def load_feed(path):
     return feed
 
 
+@st.cache
+def get_trip_stats(feed):
+    return feed.compute_trip_stats()
+
+
 feed = load_feed(path)
+
+colors = gk.COLORS_SET2
+color_size = len(colors)
+centroid = feed.compute_centroid()
+lat, lon = centroid.y, centroid.x
 
 if st.secrets.get("describe"):
     st.subheader("Stats")
@@ -42,6 +52,9 @@ if st.secrets.get("validate"):
     st.subheader("Validation")
     with st.spinner(f"validating {filename}..."):
         st.dataframe(feed.validate(), use_container_width=True)
+
+with st.spinner(f"Computing trip stats..."):
+    trip_stats = get_trip_stats(feed)
 
 st.subheader("Stops")
 m = feed.map_stops(feed.get_stops()["stop_id"])
@@ -63,26 +76,54 @@ selected_routes = st.multiselect(
 )
 if selected_routes:
     # feed.map_routes() does not seem to work with streamlit
+    def get_route_short_name(name):
+        return name.split()[0]
+
+    route_short_names = [get_route_short_name(name) for name in selected_routes]
     routes = geometrize_routes[
-        geometrize_routes["route_short_name"].isin(
-            [l.split()[0] for l in selected_routes]
-        )
+        geometrize_routes["route_short_name"].isin(route_short_names)
     ]
-    m = folium.Map((51.0447, -114.0719))
-    colors = gk.COLORS_SET2
+    m = folium.Map((lat, lon))
+
+    def get_locations(coords):
+        return [(b, a) for a, b in coords]
+
     color_ind = 0
-    size = len(colors)
-    for geometry in routes["geometry"]:
+    colors_used = {}
+    for row in routes[["route_short_name", "geometry"]].to_dict("records"):
+        geometry = row["geometry"]
+        name = row["route_short_name"]
         coords = mapping(geometry)["coordinates"]
+        color = colors[color_ind % color_size]
+        colors_used[name] = color
         try:
-            folium.PolyLine(
-                [(b, a) for a, b in coords], color=colors[color_ind % size]
-            ).add_to(m)
+            folium.PolyLine(get_locations(coords), color=color).add_to(m)
         except ValueError:
             for _coords in coords:
-                folium.PolyLine(
-                    [(b, a) for a, b in _coords], color=colors[color_ind % size]
-                ).add_to(m)
+                folium.PolyLine(get_locations(_coords), color=color).add_to(m)
         finally:
             color_ind += 1
     st_folium(m)
+
+    selected_trip_stats = (
+        trip_stats[trip_stats["route_short_name"].isin(route_short_names)]
+        .groupby(["route_short_name"])
+        .max()
+    )
+
+    for name, route_short_name in zip(selected_routes, route_short_names):
+        _stats = selected_trip_stats.loc[route_short_name]
+        distance = _stats["distance"]
+        duration = _stats["duration"] * 60
+        speed = _stats["speed"]
+        loop = "Yes" if _stats["is_loop"] else "No"
+        color = colors_used[route_short_name]
+        st.caption(
+            f'<p style="color:{color};">{name}</p>',
+            unsafe_allow_html=True,
+        )
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Distance (km)", f"{distance:.2f}")
+        col2.metric("Duration (mins)", f"{duration:.2f}")
+        col3.metric("Speed (km/h)", f"{speed:.2f}")
+        col4.metric("Loop?", loop)
