@@ -3,6 +3,7 @@ from pathlib import Path
 
 import folium
 import gtfs_kit as gk
+import plotly.express as px
 import streamlit as st
 from shapely.geometry import mapping
 from streamlit_folium import st_folium
@@ -64,8 +65,24 @@ st.subheader("Routes")
 geometrize_routes = feed.geometrize_routes()
 duplicated = geometrize_routes["route_short_name"].duplicated()
 geometrize_routes = geometrize_routes[~duplicated]
+
+fig = px.histogram(
+    trip_stats.groupby(["route_short_name", "distance"])
+    .nunique()
+    .reset_index()
+    .groupby("route_short_name")
+    .count()
+    .reset_index(),
+    x="distance",
+    color="distance",
+    labels={
+        "distance": "Number of Trips",
+    },
+)
+fig
+
 selected_routes = st.multiselect(
-    "Choose routes",
+    "Choose routes for info about their longest trips",
     [
         f"{d} {n}"
         for d, n in zip(
