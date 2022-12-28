@@ -69,6 +69,15 @@ geometrize_routes = geometrize_routes[~duplicated]
 st.text(f"There are {geometrize_routes['route_short_name'].nunique()} routes.")
 
 fig = px.histogram(
+    trip_stats.groupby(["route_short_name", "speed"]).nunique().reset_index(),
+    x="speed",
+    labels={
+        "speed": "Speed (km/h)",
+    },
+)
+fig
+
+fig = px.histogram(
     trip_stats.groupby(["route_short_name", "distance"])
     .nunique()
     .reset_index()
