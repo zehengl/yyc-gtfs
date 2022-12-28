@@ -58,6 +58,7 @@ with st.spinner(f"Computing trip stats..."):
     trip_stats = get_trip_stats(feed)
 
 st.subheader("Stops")
+st.text(f"There are {feed.get_stops()['stop_id'].nunique()} stops.")
 m = feed.map_stops(feed.get_stops()["stop_id"])
 st_folium(m)
 
@@ -65,6 +66,7 @@ st.subheader("Routes")
 geometrize_routes = feed.geometrize_routes()
 duplicated = geometrize_routes["route_short_name"].duplicated()
 geometrize_routes = geometrize_routes[~duplicated]
+st.text(f"There are {geometrize_routes['route_short_name'].nunique()} routes.")
 
 fig = px.histogram(
     trip_stats.groupby(["route_short_name", "distance"])
@@ -80,6 +82,7 @@ fig = px.histogram(
     },
 )
 fig
+st.text("Each route could have different numbers of trips.")
 
 selected_routes = st.multiselect(
     "Choose routes for info about their longest trips",
