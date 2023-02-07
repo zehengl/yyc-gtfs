@@ -10,6 +10,12 @@ from streamlit_folium import st_folium
 
 filename = "CT_GTFS.zip"
 st.set_page_config(page_title="yyc-gtfs", page_icon="railway_car")
+_, center, _ = st.columns([2, 1, 2])
+with center:
+    st.image(
+        "https://cdn2.iconfinder.com/data/icons/circle-icons-1/64/train-512.png",
+        use_column_width=True,
+    )
 st.title("yyc-gtfs")
 st.caption("A Streamlit app to visualize City of Calgary's GTFS feed")
 
