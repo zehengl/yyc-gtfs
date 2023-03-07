@@ -9,11 +9,11 @@ from shapely.geometry import mapping
 from streamlit_folium import st_folium
 
 filename = "CT_GTFS.zip"
-st.set_page_config(page_title="yyc-gtfs", page_icon="railway_car")
+st.set_page_config(page_title="yyc-gtfs", page_icon=":oncoming_bus:")
 _, center, _ = st.columns([2, 1, 2])
 with center:
     st.image(
-        "https://cdn2.iconfinder.com/data/icons/circle-icons-1/64/train-512.png",
+        "https://cdn0.iconfinder.com/data/icons/citycons/150/Citycons_bus-512.png",
         use_column_width=True,
     )
 st.title("yyc-gtfs")
@@ -31,15 +31,15 @@ else:
     st.success(f"{filename} has been downloaded!")
 
 
-@st.cache
+@st.cache_data
 def load_feed(path):
     feed = gk.read_feed(path, dist_units="km")
     return feed
 
 
-@st.cache
-def get_trip_stats(feed):
-    return feed.compute_trip_stats()
+@st.cache_data
+def get_trip_stats(_feed):
+    return _feed.compute_trip_stats()
 
 
 feed = load_feed(path)

@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="https://cdn2.iconfinder.com/data/icons/circle-icons-1/64/train-512.png" alt="logo" height="196">
+    <img src="https://cdn0.iconfinder.com/data/icons/citycons/150/Citycons_bus-512.png" alt="logo" height="196">
 </div>
 
 # yyc-gtfs
