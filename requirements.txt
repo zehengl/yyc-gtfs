@@ -1,4 +1,4 @@
 gtfs-kit==12.0.3
 plotly==6.6.0
-streamlit-folium==0.27.0
-streamlit==1.55.0
+streamlit-folium==0.27.1
+streamlit==1.56.0
